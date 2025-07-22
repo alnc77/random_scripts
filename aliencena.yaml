@@ -1,0 +1,35 @@
+openapi: 3.0.0
+
+info:
+  title: AlienVaultOtxApi
+  version: 1.0.0
+  description: This API provides the Threats information from AlienVault
+
+servers:
+  - url: https://otx.alienvault.com
+
+paths:
+  /api/v1/pulses/activity:
+    get:
+      summary: Get latest OTX pulse activity
+      description: Returns recent threat activity from AlienVault's OTX.
+      operationId: getLatestThreatActivity
+      security:
+        - apiKeyAuth: []
+      responses:
+        '200':
+          description: Successful response
+          content:
+            application/json:
+              schema:
+                type: object
+                description: The threat activity data
+        '401':
+          description: Unauthorized - Invalid API key
+
+components:
+  securitySchemes:
+    apiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-OTX-API-KEY
