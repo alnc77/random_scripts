@@ -1,0 +1,69 @@
+openapi: 3.0.0
+
+info:
+  title: AlienVault
+  description: This plugin will provide the functionality to fetch the details of an IP address using the AlienVault.
+  version: "1.0.0"
+
+servers:
+  - url: https://otx.alienvault.com/api/v1/indicators/
+
+paths:
+  /IPv4/{ip}/general/:
+    get:
+      operationId: GetGenericDetailsAboutIP
+      summary: This skill will search for the IP address and get the details about the it if it was involved in any suspicious activities using AlienVault.
+      parameters:
+        - in: path
+          name: ip
+          schema:
+            type: string
+          required: true
+          description: Get the IP address to lookup in AlienVault.
+  /IPv4/{ip}/malware/:
+    get:
+      operationId: GetMalwareDetailsAboutIP
+      summary: This skill will search for the IP address and get the details about the it if it was involved in any malware related activities using AlienVault.
+      parameters:
+        - in: path
+          name: ip
+          schema:
+            type: string
+          required: true
+          description: Get the IP address to lookup in AlienVault.
+  /IPv4/{ip}/geo/:
+    get:
+      operationId: GetGeoDetailsAboutIP
+      summary: This skill will search for the IP address and get the details about the it if it was involved in any malware related activities using AlienVault.
+      parameters:
+        - in: path
+          name: ip
+          schema:
+            type: string
+          required: true
+          description: Get the IP address to lookup in AlienVault.
+  /hostname/{hostname}/general/:
+    get:
+      operationId: GetDomainDetails
+      summary: This skill will search for the domain name and get the details about the it if it was involved in any suspicious activities using AlienVault.
+      parameters:
+        - in: path
+          name: hostname
+          schema:
+            type: string
+          required: true
+          description: Get the domain to lookup in AlienVault.
+  /file/{file_hash}/general/:
+    get:
+      operationId: GetFileHashDetails
+      summary: This skill will search for the filehases and get the details about the it if it was involved in any suspicious activities using AlienVault.
+      parameters:
+        - in: path
+          name: file_hash
+          schema:
+            type: string
+          required: true
+          description: Get the filehash to lookup in AlienVault.
+      responses:
+        "200":
+          description: OK
