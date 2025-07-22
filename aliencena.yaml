@@ -26,10 +26,3 @@ paths:
                 description: The threat activity data
         '401':
           description: Unauthorized - Invalid API key
-
-components:
-  securitySchemes:
-    apiKeyAuth:
-      type: apiKey
-      in: header
-      name: X-OTX-API-KEY
