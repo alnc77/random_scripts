@@ -14,8 +14,6 @@ paths:
       summary: Get latest OTX pulse activity
       description: Returns recent threat activity from AlienVault's OTX.
       operationId: getLatestThreatActivity
-      security:
-        - apiKeyAuth: []
       responses:
         '200':
           description: Successful response
