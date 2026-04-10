@@ -1,0 +1,5 @@
+---
+# ARC Helm chart repository
+arc_helm_repo_name: "oci://ghcr.io/actions/actions-runner-controller-charts"
+arc_controller_chart: "gha-runner-scale-set-controller"
+arc_runner_chart: "gha-runner-scale-set"

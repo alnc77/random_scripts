@@ -1,0 +1,41 @@
+---
+# Helm version to install
+arc_helm_version: "v3.14.3"
+
+# ARC Helm chart version (leave empty for latest)
+arc_chart_version: ""
+
+# GitHub organisation or user for runners
+arc_github_config_url: "https://github.com/YOUR_ORG_OR_REPO"
+
+# GitHub PAT with Actions:write and repo scopes
+# Provide via --extra-vars or Ansible Vault: --extra-vars @vault.yml
+arc_github_token: ""
+
+# Namespace where ARC controller is deployed
+arc_controller_namespace: "arc-systems"
+
+# Namespace where runner scale sets are deployed
+arc_runners_namespace: "arc-runners"
+
+# Name for the runner scale set (used as runner label in workflows)
+arc_runner_scale_set_name: "arc-runner-set"
+
+# Minimum and maximum runner replicas
+arc_min_runners: 0
+arc_max_runners: 5
+
+# Runner container image (leave empty for default)
+arc_runner_image: ""
+
+# Kubernetes storage class for dind runner volumes (leave empty to skip)
+arc_storage_class: ""
+
+# Whether to install kubectl if not present
+arc_install_kubectl: true
+
+# Whether to install Helm if not present
+arc_install_helm: true
+
+# Directory for temporary files on the remote host
+arc_tmp_dir: "/tmp/arc_install"

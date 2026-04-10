@@ -1,0 +1,116 @@
+---
+- name: Validate required variables
+  ansible.builtin.assert:
+    that:
+      - arc_github_config_url != "https://github.com/YOUR_ORG_OR_REPO"
+      - arc_github_config_url | length > 0
+      - arc_github_token | length > 0
+    fail_msg: >
+      arc_github_config_url and arc_github_token must be set.
+      Pass them with --extra-vars or use Ansible Vault.
+
+- name: Create temporary working directory
+  ansible.builtin.file:
+    path: "{{ arc_tmp_dir }}"
+    state: directory
+    mode: "0700"
+
+- name: Install kubectl
+  ansible.builtin.include_tasks: install_kubectl.yml
+  when: arc_install_kubectl | bool
+
+- name: Install Helm
+  ansible.builtin.include_tasks: install_helm.yml
+  when: arc_install_helm | bool
+
+- name: Create ARC controller namespace
+  kubernetes.core.k8s:
+    name: "{{ arc_controller_namespace }}"
+    api_version: v1
+    kind: Namespace
+    state: present
+
+- name: Create ARC runners namespace
+  kubernetes.core.k8s:
+    name: "{{ arc_runners_namespace }}"
+    api_version: v1
+    kind: Namespace
+    state: present
+
+- name: Install ARC controller via Helm
+  kubernetes.core.helm:
+    name: arc
+    chart_ref: "{{ arc_helm_repo_name }}/{{ arc_controller_chart }}"
+    chart_version: "{{ arc_chart_version | default(omit) }}"
+    release_namespace: "{{ arc_controller_namespace }}"
+    create_namespace: false
+    wait: true
+    wait_timeout: "300s"
+
+- name: Create GitHub token secret for runner scale set
+  kubernetes.core.k8s:
+    state: present
+    definition:
+      apiVersion: v1
+      kind: Secret
+      metadata:
+        name: arc-github-token
+        namespace: "{{ arc_runners_namespace }}"
+      type: Opaque
+      stringData:
+        github_token: "{{ arc_github_token }}"
+
+- name: Build runner scale set Helm values
+  ansible.builtin.set_fact:
+    arc_runner_values:
+      githubConfigUrl: "{{ arc_github_config_url }}"
+      githubConfigSecret: arc-github-token
+      minRunners: "{{ arc_min_runners }}"
+      maxRunners: "{{ arc_max_runners }}"
+
+- name: Add runner image override to Helm values
+  ansible.builtin.set_fact:
+    arc_runner_values: >-
+      {{ arc_runner_values | combine({'template': {'spec': {'containers': [{'name': 'runner', 'image': arc_runner_image}]}}}) }}
+  when: arc_runner_image | length > 0
+
+- name: Install ARC runner scale set via Helm
+  kubernetes.core.helm:
+    name: "{{ arc_runner_scale_set_name }}"
+    chart_ref: "{{ arc_helm_repo_name }}/{{ arc_runner_chart }}"
+    chart_version: "{{ arc_chart_version | default(omit) }}"
+    release_namespace: "{{ arc_runners_namespace }}"
+    create_namespace: false
+    values: "{{ arc_runner_values }}"
+    wait: true
+    wait_timeout: "300s"
+
+- name: Verify ARC controller is running
+  kubernetes.core.k8s_info:
+    kind: Deployment
+    namespace: "{{ arc_controller_namespace }}"
+    label_selectors:
+      - "app.kubernetes.io/name=gha-runner-scale-set-controller"
+  register: arc_controller_deployment
+  until: >
+    arc_controller_deployment.resources | length > 0 and
+    arc_controller_deployment.resources[0].status.readyReplicas is defined and
+    arc_controller_deployment.resources[0].status.readyReplicas >= 1
+  retries: 10
+  delay: 15
+
+- name: Display ARC installation summary
+  ansible.builtin.debug:
+    msg:
+      - "ARC installation complete!"
+      - "Controller namespace : {{ arc_controller_namespace }}"
+      - "Runners namespace    : {{ arc_runners_namespace }}"
+      - "Runner scale set     : {{ arc_runner_scale_set_name }}"
+      - "GitHub config URL    : {{ arc_github_config_url }}"
+      - "Min / Max runners    : {{ arc_min_runners }} / {{ arc_max_runners }}"
+      - "Use '{{ arc_runner_scale_set_name }}' as the runs-on label in your workflows."
+
+- name: Clean up temporary directory
+  ansible.builtin.file:
+    path: "{{ arc_tmp_dir }}"
+    state: absent

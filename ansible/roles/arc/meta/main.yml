@@ -1,0 +1,22 @@
+---
+galaxy_info:
+  role_name: arc
+  author: devops-admin
+  description: Installs GitHub Actions Runner Controller (ARC) on a Kubernetes cluster using Helm
+  min_ansible_version: "2.14"
+  platforms:
+    - name: Ubuntu
+      versions:
+        - focal
+        - jammy
+    - name: EL
+      versions:
+        - "8"
+        - "9"
+  galaxy_tags:
+    - kubernetes
+    - github
+    - actions
+    - arc
+    - helm
+  dependencies: []

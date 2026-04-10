@@ -1,0 +1,10 @@
+---
+# Ansible Vault example - encrypt this file with:
+#   ansible-vault encrypt vault.yml
+#
+# Usage:
+#   ansible-playbook install_arc.yml --ask-vault-pass
+#   ansible-playbook install_arc.yml --vault-password-file ~/.vault_pass
+
+arc_github_token: "ghp_REPLACE_WITH_YOUR_PAT"
+arc_github_config_url: "https://github.com/YOUR_ORG_OR_REPO"

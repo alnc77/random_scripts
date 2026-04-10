@@ -1,0 +1,29 @@
+---
+- name: Install GitHub Actions Runner Controller (ARC)
+  hosts: k8s_hosts
+  gather_facts: true
+  become: false
+
+  vars_files:
+    # Uncomment to load secrets from an Ansible Vault-encrypted file
+    # - vault.yml
+
+  # Override any defaults here or pass via --extra-vars
+  # vars:
+  #   arc_github_config_url: "https://github.com/my-org"
+  #   arc_github_token: "ghp_xxxxxxxxxxxx"
+  #   arc_runner_scale_set_name: "my-runner-set"
+  #   arc_min_runners: 1
+  #   arc_max_runners: 10
+
+  pre_tasks:
+    - name: Ensure required Python packages are present (kubernetes)
+      ansible.builtin.pip:
+        name:
+          - kubernetes>=24.2.0
+          - PyYAML>=6.0
+        extra_args: --user
+      become: false
+
+  roles:
+    - role: arc

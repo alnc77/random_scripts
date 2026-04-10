@@ -1,0 +1,22 @@
+---
+- name: Check if Helm is already installed
+  ansible.builtin.command: helm version --short
+  register: helm_check
+  changed_when: false
+  failed_when: false
+
+- name: Download Helm installer script
+  ansible.builtin.get_url:
+    url: https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3
+    dest: "{{ arc_tmp_dir }}/get_helm.sh"
+    mode: "0700"
+  when: helm_check.rc != 0
+
+- name: Install Helm {{ arc_helm_version }}
+  ansible.builtin.command:
+    cmd: "{{ arc_tmp_dir }}/get_helm.sh --version {{ arc_helm_version }}"
+  become: true
+  when: helm_check.rc != 0
+  environment:
+    HELM_INSTALL_DIR: /usr/local/bin
+    USE_SUDO: "true"

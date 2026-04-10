@@ -1,0 +1,40 @@
+---
+- name: Check if kubectl is already installed
+  ansible.builtin.command: kubectl version --client --output=json
+  register: kubectl_check
+  changed_when: false
+  failed_when: false
+
+- name: Detect system architecture
+  ansible.builtin.command: uname -m
+  register: uname_m
+  changed_when: false
+  when: kubectl_check.rc != 0
+
+- name: Map architecture to kubectl download name
+  ansible.builtin.set_fact:
+    kubectl_arch: "{{ 'arm64' if uname_m.stdout == 'aarch64' else 'amd64' }}"
+  when: kubectl_check.rc != 0
+
+- name: Get latest stable kubectl version
+  ansible.builtin.uri:
+    url: https://dl.k8s.io/release/stable.txt
+    return_content: true
+  register: kubectl_stable_version
+  when: kubectl_check.rc != 0
+
+- name: Download kubectl binary
+  ansible.builtin.get_url:
+    url: "https://dl.k8s.io/release/{{ kubectl_stable_version.content | trim }}/bin/linux/{{ kubectl_arch }}/kubectl"
+    dest: "{{ arc_tmp_dir }}/kubectl"
+    mode: "0755"
+  when: kubectl_check.rc != 0
+
+- name: Install kubectl to /usr/local/bin
+  ansible.builtin.copy:
+    src: "{{ arc_tmp_dir }}/kubectl"
+    dest: /usr/local/bin/kubectl
+    mode: "0755"
+    remote_src: true
+  become: true
+  when: kubectl_check.rc != 0
